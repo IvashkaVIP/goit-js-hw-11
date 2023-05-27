@@ -25,17 +25,18 @@ function onBtnSubmit(evt) {
     return;
   }
 
-  fetchPictures(inputQuery)
-      .then(data => {
-        if (!data.total) {
+ fetchPictures(inputQuery)
+     .then(resp => {
+        // console.dir(data.data)
+         if (!resp.data.total) {
         Notify.failure(
           'Sorry, there are no images matching your search query. Please try again.'
             );
             picturesList.innerHTML = '';
         return;
           }
-      Notify.success(`Hooray! We found ${data.total} images.`);
-      picturesList.innerHTML = creatMarkupPictures(data);
+      Notify.success(`Hooray! We found ${resp.data.total} images.`);
+      picturesList.innerHTML = creatMarkupPictures(resp.data);
     })
     .catch(err => {
       console.log(err);
