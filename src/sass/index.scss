@@ -1,2 +1,14 @@
 @import './common';
 
+.search-form {
+ text-align: center;
+}
+
+.info {
+    display: flex;
+}
+
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+}

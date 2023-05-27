@@ -26,13 +26,15 @@ function onBtnSubmit(evt) {
   }
 
   fetchPictures(inputQuery)
-    .then(data => {
-      if (data === []) {
+      .then(data => {
+        if (!data.total) {
         Notify.failure(
           'Sorry, there are no images matching your search query. Please try again.'
-        );
+            );
+            picturesList.innerHTML = '';
         return;
-      }
+          }
+      Notify.success(`Hooray! We found ${data.total} images.`);
       picturesList.innerHTML = creatMarkupPictures(data);
     })
     .catch(err => {
@@ -59,16 +61,16 @@ function creatMarkupPictures(data) {
             <img src="${webformatURL}" alt="${tags}" loading="lazy" />
             <div class="info">
               <p class="info-item">
-                <b>${likes}</b>
+                <b>Likes</b>${likes}
               </p>
               <p class="info-item">
-                <b>${views}</b>
+                <b>Views</b>${views}
               </p>
               <p class="info-item">
-                <b>${comments}</b>
+                <b>Comments</b>${comments}
               </p>
               <p class="info-item">
-                <b>${downloads}</b>
+                <b>Downloads</b>${downloads}
               </p>
             </div>
           </div>`;
