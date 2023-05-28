@@ -103,7 +103,6 @@ async function onBtnSubmit(evt) {
       return;
     }
     Notify.success(`Hooray! We found ${data.total} images.`);
-    console.log(page);
     picturesList.insertAdjacentHTML('beforeend', creatMarkupPictures(data));
     formDisabled(false);
     if (page * HITS_PER_PAGE <= data.totalHits) {
@@ -126,13 +125,14 @@ function handlerPagination(entries, observer) {
     if (entry.isIntersecting && picturesList.firstElementChild) {
       page++;
       fetchPictures(inputQuery, page, HITS_PER_PAGE)
-        .then(data => {
+        .then(({ data }) => {
+          //console.log(data);
           picturesList.insertAdjacentHTML(
             'beforeend',
-            creatMarkupPictures(data.data)
+            creatMarkupPictures(data)
           );
           smoothScroll(picturesList.firstElementChild);
-          if (page * HITS_PER_PAGE >= data.data.totalHits) {
+          if (page * HITS_PER_PAGE >= data.totalHits) {
             Notify.warning(
               "We're sorry, but you've reached the end of search results."
             );
