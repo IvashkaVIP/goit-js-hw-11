@@ -38,7 +38,7 @@ function handlerPagination() {
          clearQery();
          return;
        }
-       Notify.success(`Hooray! We found ${respData.total} images.`);
+       //Notify.success(`Hooray! We found ${respData.total} images.`);
 
        
        picturesList.insertAdjacentHTML(
@@ -50,6 +50,7 @@ function handlerPagination() {
          loadmore.hidden = false;
        } else {
          loadmore.hidden = true;
+         Notify.warning("We're sorry, but you've reached the end of search results.");
        }
      })
     .catch(err => {
