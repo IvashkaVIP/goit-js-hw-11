@@ -10,12 +10,21 @@ const btnSubmit = document.querySelector('#search-form');
 const searchQuery = document.querySelector('input');
 const picturesList = document.querySelector('.gallery');
 const loadmore = document.querySelector('.js-load-more');
+const guard = document.querySelector('.js-guard');
 
-loadmore.addEventListener('click', handlerPagination);
+const options = {
+  root: null,
+  rootMargin: '400px',
+  threshold: 1.0,
+};
+
+const observer = new IntersectionObserver(handlerPagination, options);
+
 btnSubmit.addEventListener('submit', onBtnSubmit);
 
 let page = 1;
 let inputQuery = '';
+let maxHits = 0;
 
 function formDisabled(isDisabled) {
   btnSubmit[0].disabled = isDisabled;
@@ -59,6 +68,7 @@ function clearQery() {
   inputQuery = '';
   picturesList.innerHTML = '';
   loadmore.hidden = true;
+  maxHits = 0;
 }
 function handlerError(err) {
   console.log(err.message);
@@ -66,11 +76,7 @@ function handlerError(err) {
   clearQery();
 }
 
-
-//---------------------------------------------------------------------------------------------
-
 async function onBtnSubmit(evt) {
- 
   clearQery();
   evt.preventDefault();
   inputQuery = searchQuery.value.trim();
@@ -80,54 +86,54 @@ async function onBtnSubmit(evt) {
   }
   formDisabled(true);
   const { data } = await fetchPictures(inputQuery, page, HITS_PER_PAGE);
-      try {
-      if (!data.total) {
-        Notify.failure(
-          'Sorry, there are no images matching your search query. Please try again.'
-        );
-        formDisabled(false);
-        return;
-      }
-      Notify.success(`Hooray! We found ${data.total} images.`);
-      picturesList.insertAdjacentHTML('beforeend', creatMarkupPictures(data));
+  try {
+    if (!data.total) {
+      Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
       formDisabled(false);
-      if (page * HITS_PER_PAGE <= data.totalHits) {
-        loadmore.hidden = false;
-      }
-      
-    } catch (err) { 
-        handlerError(err);
+      return;
     }
+    Notify.success(`Hooray! We found ${data.total} images.`);
+    picturesList.insertAdjacentHTML('beforeend', creatMarkupPictures(data));
+    maxHits = data.totalHits;
+    formDisabled(false);
+    if (page * HITS_PER_PAGE <= data.totalHits) {
+      observer.observe(guard);
+    }  else {
+       Notify.warning(
+         "We're sorry, but you've reached the end of search results."
+       );
+     }
+    
+    
+  } catch (err) {
+    handlerError(err);
+  }
 }
 
 
+function handlerPagination(entries) {
+  entries.forEach((entry) => {
+    //console.log(entry);
 
-async function handlerPagination() {
-  
-  page++;
-  formDisabled(true);
-
-  const { data } = await fetchPictures(inputQuery, page, HITS_PER_PAGE)
-     try {
-            
-       picturesList.insertAdjacentHTML('beforeend',creatMarkupPictures(data));
-       formDisabled(false);
-       if (page * HITS_PER_PAGE <= data.totalHits) {
-         loadmore.hidden = false;
-       } else {
-         loadmore.hidden = true;
-         Notify.warning("We're sorry, but you've reached the end of search results.");
-       }
-     } catch(err) {
-      handlerError(err);
-    };
+     if (entry.isIntersecting && (page*HITS_PER_PAGE < maxHits)) {
+      page++;
+      fetchPictures(inputQuery, page, HITS_PER_PAGE)
+        .then(data => {
+          picturesList.insertAdjacentHTML('beforeend', creatMarkupPictures(data.data));
+          //console.log(data.data.totalHits,'  ',page)
+          if ( (page* HITS_PER_PAGE) >= data.data.totalHits) {
+            Notify.warning(
+              "We're sorry, but you've reached the end of search results."
+            );
+          }
+        })
+        .catch(err => console.log(err));
+      };
+  })
+ 
 }
-
-
-
-
-
-
 
 
 
