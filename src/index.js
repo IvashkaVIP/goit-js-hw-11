@@ -67,7 +67,7 @@ function clearQery() {
   page = 1;
   inputQuery = '';
   picturesList.innerHTML = '';
-  loadmore.hidden = true;
+ // loadmore.hidden = true;
   }
 function handlerError(err) {
   console.log(err.message);
@@ -84,8 +84,9 @@ function smoothScroll(element) {
 }
 
 async function onBtnSubmit(evt) {
-  clearQery();
+  
   evt.preventDefault();
+  clearQery();
   inputQuery = searchQuery.value.trim();
   if (inputQuery === '') {
     Notify.failure('the field cannot be empty!');
@@ -102,8 +103,8 @@ async function onBtnSubmit(evt) {
       return;
     }
     Notify.success(`Hooray! We found ${data.total} images.`);
+    console.log(page);
     picturesList.insertAdjacentHTML('beforeend', creatMarkupPictures(data));
-    maxHits = data.totalHits;
     formDisabled(false);
     if (page * HITS_PER_PAGE <= data.totalHits) {
       observer.observe(guard);
@@ -122,10 +123,7 @@ async function onBtnSubmit(evt) {
 
 function handlerPagination(entries, observer) {
   entries.forEach((entry) => {
-   // console.log(entry);
-
-     
-    if (entry.isIntersecting) {
+    if (entry.isIntersecting && picturesList.firstElementChild) {
       page++;
       fetchPictures(inputQuery, page, HITS_PER_PAGE)
         .then(data => {
@@ -134,7 +132,7 @@ function handlerPagination(entries, observer) {
             creatMarkupPictures(data.data)
           );
           smoothScroll(picturesList.firstElementChild);
-           if (page * HITS_PER_PAGE >= data.data.totalHits) {
+          if (page * HITS_PER_PAGE >= data.data.totalHits) {
             Notify.warning(
               "We're sorry, but you've reached the end of search results."
             );
