@@ -15,11 +15,18 @@ let page = 1;
 let inputQuery = '';
 
 
+function formDisabled(isDisabled) {
+  btnSubmit[0].disabled = isDisabled;
+  btnSubmit[1].disabled = isDisabled;
+}
+
 
 
 function handlerPagination() {
   
   page++;
+
+  formDisabled(true);
 
   fetchPictures(inputQuery, page, HITS_PER_PAGE)
      .then(resp => {
@@ -33,10 +40,12 @@ function handlerPagination() {
        }
        Notify.success(`Hooray! We found ${respData.total} images.`);
 
+       
        picturesList.insertAdjacentHTML(
          'beforeend',
          creatMarkupPictures(respData)
        );
+       formDisabled(false);
        if (page < Math.ceil(respData.totalHits / HITS_PER_PAGE)) {
          loadmore.hidden = false;
        } else {
@@ -63,9 +72,12 @@ function onBtnSubmit(evt) {
   inputQuery = searchQuery.value.trim();
   if (inputQuery === '') {
     Notify.failure('the field cannot be empty!');
+    loadmore.hidden = true;
     return;
   }
   
+  formDisabled(true);
+  //loadmore.hidden = true;
   
  fetchPictures(inputQuery, page, HITS_PER_PAGE)
      .then(resp => {
@@ -79,11 +91,11 @@ function onBtnSubmit(evt) {
         return;
        }
        
-      //  btnSubmit.disabled = true;
-      //  searchQuery.disabled = true;
-
        Notify.success(`Hooray! We found ${respData.total} images.`);
+
+       
        picturesList.insertAdjacentHTML('beforeend', creatMarkupPictures(respData));
+       formDisabled(false);
        if (page < Math.ceil(respData.totalHits / HITS_PER_PAGE)) {
 
          loadmore.hidden = false;
