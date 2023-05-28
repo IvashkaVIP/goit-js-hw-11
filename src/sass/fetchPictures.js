@@ -15,16 +15,18 @@ const API_KEY = '36802166-6c141fd6d6e9c8442c873b534';
 //const axios = requeri ('axios').default;
 //const axios = require('axios/dist/browser/axios.cjs'); // browser
 
-export async function fetchPictures(searchText) {
+export async function fetchPictures(searchQuery='', currentPage=1, hitsPerPage) {
     
-  const searchParams = new URLSearchParams ({
-    key : API_KEY,
-    q: searchText,
+return await axios(BASE_URL, {
+  params: {
+    key: API_KEY,
+    q: searchQuery,
     image_type: 'photo',
     orientation: 'horizontal',
-    safesearch: true
-   });
-  
-  return await axios(BASE_URL + searchParams.toString());
+    safesearch: true,
+    page: currentPage,
+    per_page: hitsPerPage,
+  },
+});
 }
   

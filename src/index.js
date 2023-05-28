@@ -3,47 +3,104 @@ import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import debounce from 'lodash.debounce';
 import { fetchPictures } from './sass/fetchPictures';
 
+const HITS_PER_PAGE = 40;
 //const DEBOUNCE_DELAY = 300;
 
 const btnSubmit = document.querySelector('#search-form');
 const searchQuery = document.querySelector('input');
 const picturesList = document.querySelector('.gallery');
-//console.log(picturesList);
+const loadmore = document.querySelector('.js-load-more');
+loadmore.addEventListener('click', handlerPagination);
+let page = 1;
+let inputQuery = '';
 
-// const countryList = document.querySelector('.country-list');
-// const countryInfo = document.querySelector('.country-info');
+
+
+
+function handlerPagination() {
+  
+  page++;
+
+  fetchPictures(inputQuery, page, HITS_PER_PAGE)
+     .then(resp => {
+       const respData = resp.data;
+       if (!respData.total) {
+         Notify.failure(
+           'Sorry, there are no images matching your search query. Please try again.'
+         );
+         clearQery();
+         return;
+       }
+       Notify.success(`Hooray! We found ${respData.total} images.`);
+
+       picturesList.insertAdjacentHTML(
+         'beforeend',
+         creatMarkupPictures(respData)
+       );
+       if (page < Math.ceil(respData.totalHits / HITS_PER_PAGE)) {
+         loadmore.hidden = false;
+       } else {
+         loadmore.hidden = true;
+       }
+     })
+    .catch(err => {
+      console.log(err);
+      if (err.message === '404') {
+        Notify.failure('Oops, there is no pictures whith that query');
+      }
+      //picturesList.innerHTML = '';
+      clearQery();
+    });
+}
+
 
 btnSubmit.addEventListener('submit', onBtnSubmit);
 
 function onBtnSubmit(evt) {
+
+  clearQery();
   evt.preventDefault();
-
-  const inputQuery = searchQuery.value.trim();
-
+  inputQuery = searchQuery.value.trim();
   if (inputQuery === '') {
     Notify.failure('the field cannot be empty!');
     return;
   }
-
- fetchPictures(inputQuery)
+  
+  
+ fetchPictures(inputQuery, page, HITS_PER_PAGE)
      .then(resp => {
         // console.dir(data.data)
-         if (!resp.data.total) {
+       const respData = resp.data;
+         if (!respData.total) {
         Notify.failure(
           'Sorry, there are no images matching your search query. Please try again.'
             );
-            picturesList.innerHTML = '';
+           clearQery();
         return;
-          }
-      Notify.success(`Hooray! We found ${resp.data.total} images.`);
-      picturesList.innerHTML = creatMarkupPictures(resp.data);
+       }
+       
+      //  btnSubmit.disabled = true;
+      //  searchQuery.disabled = true;
+
+       Notify.success(`Hooray! We found ${respData.total} images.`);
+       picturesList.insertAdjacentHTML('beforeend', creatMarkupPictures(respData));
+       if (page < Math.ceil(respData.totalHits / HITS_PER_PAGE)) {
+
+         loadmore.hidden = false;
+       };
+       //console.log(loadmore.hidden);
+
+      //  btnSubmit.disabled = false;
+      //  searchQuery.disabled = false;
+
     })
     .catch(err => {
       console.log(err);
       if (err.message === '404') {
         Notify.failure('Oops, there is no pictures whith that query');
       }
-      picturesList.innerHTML = '';
+      //picturesList.innerHTML = '';
+      clearQery();
     });
 }
 
@@ -78,37 +135,15 @@ function creatMarkupPictures(data) {
     }
   ).join('');
 
-  // webformatURL - ссылка на маленькое изображение для списка карточек.
-  // largeImageURL - ссылка на большое изображение.
-  // tags - строка с описанием изображения. Подойдет для атрибута alt.
-  // likes - количество лайков.
-  // views - количество просмотров.
-  // comments - количество комментариев.
-  // downloads - количество загрузок.
-
-  // data.map(({ total }) => console.log(total));
-  //data.map(item => console.log(item));
-
-  //console.log({ hits: { webformatHeight } });
-
-  //     return `<div class="photo-card">
-  //   <img src="" alt="" loading="lazy" />
-  //   <div class="info">
-  //     <p class="info-item">
-  //       <b>Likes</b>
-  //     </p>
-  //     <p class="info-item">
-  //       <b>Views</b>
-  //     </p>
-  //     <p class="info-item">
-  //       <b>Comments</b>
-  //     </p>
-  //     <p class="info-item">
-  //       <b>Downloads</b>
-  //     </p>
-  //   </div>
-  // </div>`;
 }
+
+
+function clearQery() {
+  page = 1;
+  inputQuery = '';
+  picturesList.innerHTML = '';
+}
+
 
 //searchQuery.addEventListener('input', debounce(inputCountries, DEBOUNCE_DELAY));
 //console.log(searchQuery);
