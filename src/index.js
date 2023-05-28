@@ -21,7 +21,6 @@ function formDisabled(isDisabled) {
   btnSubmit[0].disabled = isDisabled;
   btnSubmit[1].disabled = isDisabled;
 }
-
 function creatMarkupPictures(data) {
   return data.hits
     .map(
@@ -55,111 +54,88 @@ function creatMarkupPictures(data) {
     )
     .join('');
 }
-
 function clearQery() {
   page = 1;
   inputQuery = '';
   picturesList.innerHTML = '';
+  loadmore.hidden = true;
 }
-
-//-----------------------------------------------------------------------------------------------------------------------------------------------------------
-//-----------------------------------------------------------------------------------------------------------------------------------------------------------
-
-function handlerPagination() {
-  
-  page++;
-
-  formDisabled(true);
-
-  fetchPictures(inputQuery, page, HITS_PER_PAGE)
-     .then(resp => {
-       const respData = resp.data;
-       if (!respData.total) {
-         Notify.failure(
-           'Sorry, there are no images matching your search query. Please try again.'
-         );
-         clearQery();
-         return;
-       }
-       //Notify.success(`Hooray! We found ${respData.total} images.`);
-
-       
-       picturesList.insertAdjacentHTML(
-         'beforeend',
-         creatMarkupPictures(respData)
-       );
-       formDisabled(false);
-       if (page < Math.ceil(respData.totalHits / HITS_PER_PAGE)) {
-         loadmore.hidden = false;
-       } else {
-         loadmore.hidden = true;
-         Notify.warning("We're sorry, but you've reached the end of search results.");
-       }
-     })
-    .catch(err => {
-      console.log(err);
-      if (err.message === '404') {
-        Notify.failure('Oops, there is no pictures whith that query');
-      }
-      //picturesList.innerHTML = '';
-      clearQery();
-    });
+function handlerError(err) {
+  console.log(err.message);
+  Notify.failure('there`s something wrong');
+  clearQery();
 }
 
 
-function onBtnSubmit(evt) {
+//---------------------------------------------------------------------------------------------
 
+async function onBtnSubmit(evt) {
+ 
   clearQery();
   evt.preventDefault();
   inputQuery = searchQuery.value.trim();
   if (inputQuery === '') {
     Notify.failure('the field cannot be empty!');
-    loadmore.hidden = true;
     return;
   }
-  
   formDisabled(true);
-  //loadmore.hidden = true;
-  
- fetchPictures(inputQuery, page, HITS_PER_PAGE)
-     .then(resp => {
-        // console.dir(data.data)
-       const respData = resp.data;
-         if (!respData.total) {
+  const { data } = await fetchPictures(inputQuery, page, HITS_PER_PAGE);
+      try {
+      if (!data.total) {
         Notify.failure(
           'Sorry, there are no images matching your search query. Please try again.'
-            );
-           clearQery();
-           formDisabled(false);
+        );
+        formDisabled(false);
         return;
-       }
-       
-       Notify.success(`Hooray! We found ${respData.total} images.`);
-
-       
-       picturesList.insertAdjacentHTML('beforeend', creatMarkupPictures(respData));
-       formDisabled(false);
-       if (page < Math.ceil(respData.totalHits / HITS_PER_PAGE)) {
-
-         loadmore.hidden = false;
-       };
-       //console.log(loadmore.hidden);
-
-      //  btnSubmit.disabled = false;
-      //  searchQuery.disabled = false;
-
-    })
-    .catch(err => {
-      console.log(err);
-      if (err.message === '404') {
-        Notify.failure('Oops, there is no pictures whith that query');
       }
-      //picturesList.innerHTML = '';
-      clearQery();
-    });
+      Notify.success(`Hooray! We found ${data.total} images.`);
+      picturesList.insertAdjacentHTML('beforeend', creatMarkupPictures(data));
+      formDisabled(false);
+      if (page * HITS_PER_PAGE <= data.totalHits) {
+        loadmore.hidden = false;
+      }
+      
+    } catch (err) { 
+        handlerError(err);
+    }
 }
 
 
+
+async function handlerPagination() {
+  
+  page++;
+  formDisabled(true);
+
+  const { data } = await fetchPictures(inputQuery, page, HITS_PER_PAGE)
+     try {
+            
+       picturesList.insertAdjacentHTML('beforeend',creatMarkupPictures(data));
+       formDisabled(false);
+       if (page * HITS_PER_PAGE <= data.totalHits) {
+         loadmore.hidden = false;
+       } else {
+         loadmore.hidden = true;
+         Notify.warning("We're sorry, but you've reached the end of search results.");
+       }
+     } catch(err) {
+      handlerError(err);
+    };
+}
+
+
+
+
+
+
+
+
+
+
+
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 //searchQuery.addEventListener('input', debounce(inputCountries, DEBOUNCE_DELAY));
 //console.log(searchQuery);
