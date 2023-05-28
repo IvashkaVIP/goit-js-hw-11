@@ -24,7 +24,7 @@ btnSubmit.addEventListener('submit', onBtnSubmit);
 
 let page = 1;
 let inputQuery = '';
-let maxHits = 0;
+
 
 function formDisabled(isDisabled) {
   btnSubmit[0].disabled = isDisabled;
@@ -68,12 +68,19 @@ function clearQery() {
   inputQuery = '';
   picturesList.innerHTML = '';
   loadmore.hidden = true;
-  maxHits = 0;
-}
+  }
 function handlerError(err) {
   console.log(err.message);
   Notify.failure('there`s something wrong');
   clearQery();
+}
+function smoothScroll(element) {
+  const { height: cardHeight } = element.getBoundingClientRect();
+
+  window.scrollBy({
+    top: cardHeight * 2.0,
+    behavior: 'smooth',
+  });
 }
 
 async function onBtnSubmit(evt) {
@@ -113,24 +120,29 @@ async function onBtnSubmit(evt) {
 }
 
 
-function handlerPagination(entries) {
+function handlerPagination(entries, observer) {
   entries.forEach((entry) => {
-    //console.log(entry);
+   // console.log(entry);
 
-     if (entry.isIntersecting && (page*HITS_PER_PAGE < maxHits)) {
+     
+    if (entry.isIntersecting) {
       page++;
       fetchPictures(inputQuery, page, HITS_PER_PAGE)
         .then(data => {
-          picturesList.insertAdjacentHTML('beforeend', creatMarkupPictures(data.data));
-          //console.log(data.data.totalHits,'  ',page)
-          if ( (page* HITS_PER_PAGE) >= data.data.totalHits) {
+          picturesList.insertAdjacentHTML(
+            'beforeend',
+            creatMarkupPictures(data.data)
+          );
+          smoothScroll(picturesList.firstElementChild);
+           if (page * HITS_PER_PAGE >= data.data.totalHits) {
             Notify.warning(
               "We're sorry, but you've reached the end of search results."
             );
+            observer.unobserve(guard);
           }
         })
         .catch(err => console.log(err));
-      };
+    };
   })
  
 }
