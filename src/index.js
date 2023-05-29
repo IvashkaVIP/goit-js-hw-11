@@ -2,6 +2,10 @@ import './sass/index.scss';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 //import debounce from 'lodash.debounce';
 import { fetchPictures } from './sass/fetchPictures';
+// Описан в документации
+import SimpleLightbox from "simplelightbox";
+// Дополнительный импорт стилей
+import "simplelightbox/dist/simple-lightbox.min.css";
 
 const HITS_PER_PAGE = 40;
 //const DEBOUNCE_DELAY = 300;
@@ -11,6 +15,10 @@ const searchQuery = document.querySelector('input');
 const picturesList = document.querySelector('.gallery');
 const loadmore = document.querySelector('.js-load-more');
 const guard = document.querySelector('.js-guard');
+
+const lightbox = new SimpleLightbox('.gallery a', {
+  captionDelay: '250',
+});
 
 const options = {
   root: null,
@@ -43,7 +51,7 @@ function creatMarkupPictures(data) {
         downloads,
       }) => {
         return `<div class="photo-card">
-            <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+            <a href="${largeImageURL}"><img src="${webformatURL}" alt="${tags}" loading="lazy" /></a>
             <div class="info">
               <p class="info-item">
                 <b>Likes</b>${likes}
@@ -95,6 +103,7 @@ async function onBtnSubmit(evt) {
   formDisabled(true);
   const { data } = await fetchPictures(inputQuery, page, HITS_PER_PAGE);
   try {
+    lightbox.refresh();
     if (!data.total) {
       Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
@@ -131,6 +140,7 @@ function handlerPagination(entries, observer) {
             'beforeend',
             creatMarkupPictures(data)
           );
+          lightbox.refresh();
           smoothScroll(picturesList.firstElementChild);
           if (page * HITS_PER_PAGE >= data.totalHits) {
             Notify.warning(
@@ -144,9 +154,6 @@ function handlerPagination(entries, observer) {
   })
  
 }
-
-
-
 
 
 
