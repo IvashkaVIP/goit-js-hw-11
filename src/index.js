@@ -51,22 +51,24 @@ function creatMarkupPictures(data) {
         downloads,
       }) => {
         return `<div class="photo-card">
-            <a href="${largeImageURL}"><img src="${webformatURL}" alt="${tags}" loading="lazy" /></a>
-            <div class="info">
-              <p class="info-item">
-                <b>Likes</b>${likes}
-              </p>
-              <p class="info-item">
-                <b>Views</b>${views}
-              </p>
-              <p class="info-item">
-                <b>Comments</b>${comments}
-              </p>
-              <p class="info-item">
-                <b>Downloads</b>${downloads}
-              </p>
-            </div>
-          </div>`;
+                  <a href="${largeImageURL}">
+                    <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+                  </a>
+                      <div class="info">
+                        <p class="info-item">
+                        <b>Likes</b>${likes}
+                        </p>
+                        <p class="info-item">
+                        <b>Views</b>${views}
+                        </p>
+                        <p class="info-item">
+                        <b>Comments</b>${comments}
+                        </p>
+                        <p class="info-item">
+                        <b>Downloads</b>${downloads}
+                        </p>
+                      </div>
+                </div>`;
       }
     )
     .join('');
@@ -101,9 +103,9 @@ async function onBtnSubmit(evt) {
     return;
   }
   formDisabled(true);
-  const { data } = await fetchPictures(inputQuery, page, HITS_PER_PAGE);
+
   try {
-    lightbox.refresh();
+    const { data } = await fetchPictures(inputQuery, page, HITS_PER_PAGE);
     if (!data.total) {
       Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
@@ -111,23 +113,22 @@ async function onBtnSubmit(evt) {
       formDisabled(false);
       return;
     }
+
     Notify.success(`Hooray! We found ${data.total} images.`);
     picturesList.insertAdjacentHTML('beforeend', creatMarkupPictures(data));
+    lightbox.refresh();
     formDisabled(false);
     if (page * HITS_PER_PAGE <= data.totalHits) {
       observer.observe(guard);
-    }  else {
-       Notify.warning(
-         "We're sorry, but you've reached the end of search results."
-       );
-     }
-    
-    
+    } else {
+      Notify.warning(
+        "We're sorry, but you've reached the end of search results."
+      );
+    }
   } catch (err) {
     handlerError(err);
   }
 }
-
 
 function handlerPagination(entries, observer) {
   entries.forEach((entry) => {
