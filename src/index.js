@@ -1,7 +1,7 @@
 import './sass/index.scss';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import SimpleLightbox from "simplelightbox";
-import "simplelightbox/dist/simple-lightbox.min.css";
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 import { creatMarkupPictures } from './import/creatMarkup';
 import { fetchPictures } from './import/fetchPictures';
 import { lightbox } from './import/lightBox';
@@ -35,8 +35,8 @@ function clearQery() {
   page = 1;
   inputQuery = '';
   picturesList.innerHTML = '';
- // loadmore.hidden = true;
-  }
+  // loadmore.hidden = true;
+}
 function handlerError(err) {
   console.log(err.message);
   Notify.failure('there`s something wrong');
@@ -71,7 +71,7 @@ async function onBtnSubmit(evt) {
       return;
     }
 
-    Notify.success(`Hooray! We found ${data.total} images.`);
+    Notify.success(`Hooray! We found ${data.totalHits} images.`);
     picturesList.insertAdjacentHTML('beforeend', creatMarkupPictures(data));
     lightbox.refresh();
     formDisabled(false);
@@ -87,29 +87,64 @@ async function onBtnSubmit(evt) {
   }
 }
 
-function handlerPagination(entries, observer) {
-  entries.forEach((entry) => {
+//-------------------------------------------------------------------------------------------------------------------------------//
+//----------------------------------------------------------------------|---------------------|----------------------------------//
+//----------------------------------------------------------------------|                     |----------------------------------//
+//----------------------------------------------------------------------|   try{} catch{}     |----------------------------------//
+//----------------------------------------------------------------------|                     |----------------------------------//
+//----------------------------------------------------------------------|---------------------|----------------------------------//
+
+async function handlerPagination(entries, observer) {
+  entries.forEach(async entry => {
     if (entry.isIntersecting && picturesList.firstElementChild) {
       page++;
-      fetchPictures(inputQuery, page, HITS_PER_PAGE)
-        .then(({ data }) => {
-          //console.log(data);
-          picturesList.insertAdjacentHTML(
-            'beforeend',
-            creatMarkupPictures(data)
-          );
-          lightbox.refresh();
-          smoothScroll(picturesList.firstElementChild);
-          if (page * HITS_PER_PAGE >= data.totalHits) {
-            Notify.warning(
-              "We're sorry, but you've reached the end of search results."
-            );
-            observer.unobserve(guard);
-          }
-        })
-        .catch(err => console.log(err));
-    };
-  })
- 
-}
 
+      try {
+        const { data } = await fetchPictures(inputQuery, page, HITS_PER_PAGE);
+
+        picturesList.insertAdjacentHTML('beforeend', creatMarkupPictures(data));
+        lightbox.refresh();
+        smoothScroll(picturesList.firstElementChild);
+
+        if (page * HITS_PER_PAGE >= data.totalHits) {
+          Notify.warning(
+            "We're sorry, but you've reached the end of search results."
+          );
+          observer.unobserve(guard);
+        }
+      } catch (err) {
+        handlerError(err);
+      }
+    }
+  });
+}
+//----------------------------------------------------------------------|---------------------|----------------------------------//
+//----------------------------------------------------------------------|                     |----------------------------------//
+//----------------------------------------------------------------------|   .then().catch()   |----------------------------------//
+//----------------------------------------------------------------------|                     |----------------------------------//
+//----------------------------------------------------------------------|---------------------|----------------------------------//
+
+// function handlerPagination(entries, observer) {
+//   entries.forEach(entry => {
+//     if (entry.isIntersecting && picturesList.firstElementChild) {
+//       page++;
+//       fetchPictures(inputQuery, page, HITS_PER_PAGE)
+//         .then(({ data }) => {
+//           //console.log(data);
+//           picturesList.insertAdjacentHTML(
+//             'beforeend',
+//             creatMarkupPictures(data)
+//           );
+//           lightbox.refresh();
+//           smoothScroll(picturesList.firstElementChild);
+//           if (page * HITS_PER_PAGE >= data.totalHits) {
+//             Notify.warning(
+//               "We're sorry, but you've reached the end of search results."
+//             );
+//             observer.unobserve(guard);
+//           }
+//         })
+//         .catch(err => console.log(err));
+//     }
+//   });
+// }
