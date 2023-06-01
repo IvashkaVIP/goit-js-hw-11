@@ -1,10 +1,10 @@
 import './sass/index.scss';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import { creatMarkupPictures } from './import/creatMarkup';
 import { fetchPictures } from './import/fetchPictures';
 import { lightbox } from './import/lightBox';
+import { handlerError } from './import/handlerError';
 
 const HITS_PER_PAGE = 40;
 
@@ -31,17 +31,17 @@ function formDisabled(isDisabled) {
   btnSubmit[1].disabled = isDisabled;
 }
 
-function clearQery() {
+export function clearQery() {
   page = 1;
   inputQuery = '';
   picturesList.innerHTML = '';
   // loadmore.hidden = true;
 }
-function handlerError(err) {
-  console.log(err.message);
-  Notify.failure('there`s something wrong');
-  clearQery();
-}
+// function handlerError(err) {
+//   console.log(err.message);
+//   Notify.failure('there`s something wrong');
+//   clearQery();
+// }
 function smoothScroll(element) {
   const { height: cardHeight } = element.getBoundingClientRect();
 
@@ -89,7 +89,7 @@ async function onBtnSubmit(evt) {
 
 //-------------------------------------------------------------------------------------------------------------------------------//
 //----------------------------------------------------------------------|---------------------|----------------------------------//
-//----------------------------------------------------------------------|                     |----------------------------------//
+//----------------------------------------------------------------------|   async / await     |----------------------------------//
 //----------------------------------------------------------------------|   try{} catch{}     |----------------------------------//
 //----------------------------------------------------------------------|                     |----------------------------------//
 //----------------------------------------------------------------------|---------------------|----------------------------------//
